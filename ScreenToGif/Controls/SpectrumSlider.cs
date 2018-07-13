@@ -43,8 +43,8 @@ namespace ScreenToGif.Controls
         /// </summary>
         public Color SelectedColor
         {
-            get { return (Color)GetValue(SelectedColorProperty); }
-            set { SetValue(SelectedColorProperty, value); }
+            get => (Color)GetValue(SelectedColorProperty);
+            set => SetValue(SelectedColorProperty, value);
         }
 
         #endregion
@@ -68,6 +68,7 @@ namespace ScreenToGif.Controls
             {
 
                 _colorThumb.PreviewMouseLeftButtonUp += _colorThumb_MouseLeftButtonUp;
+                _colorThumb.MouseEnter += _colorThumb_MouseEnter;
             }
 
             UpdateColorSpectrum();
@@ -76,9 +77,24 @@ namespace ScreenToGif.Controls
 
         void _colorThumb_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (AfterSelecting != null)
+            AfterSelecting?.Invoke();
+        }
+
+        private void _colorThumb_MouseEnter(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed && e.MouseDevice.Captured == null)
             {
-                AfterSelecting();
+                // https://social.msdn.microsoft.com/Forums/vstudio/en-US/5fa7cbc2-c99f-4b71-b46c-f156bdf0a75a/making-the-slider-slide-with-one-click-anywhere-on-the-slider?forum=wpf
+                // the left button is pressed on mouse enter
+                // but the mouse isn't captured, so the thumb
+                // must have been moved under the mouse in response
+                // to a click on the track thanks to IsMoveToPointEnabled.
+                // Generate a MouseLeftButtonDown event.
+                _colorThumb.RaiseEvent(
+                    new MouseButtonEventArgs(e.MouseDevice, e.Timestamp, MouseButton.Left)
+                    {
+                        RoutedEvent = MouseLeftButtonDownEvent
+                    });
             }
         }
 
@@ -89,7 +105,7 @@ namespace ScreenToGif.Controls
         protected override void OnValueChanged(double oldValue, double newValue)
         {
             base.OnValueChanged(oldValue, newValue);
-            Color theColor = ColorExtensions.ConvertHsvToRgb(360 - newValue, 1, 1, 255);
+            var theColor = ColorExtensions.ConvertHsvToRgb(360 - newValue, 1, 1, 255);
             SetValue(SelectedColorProperty, theColor);
         }
 
@@ -100,9 +116,7 @@ namespace ScreenToGif.Controls
         private void UpdateColorSpectrum()
         {
             if (_spectrumRectangle != null)
-            {
                 CreateSpectrum();
-            }
         }
 
         private void CreateSpectrum()
@@ -112,14 +126,12 @@ namespace ScreenToGif.Controls
             _pickerBrush.EndPoint = new Point(0.5, 1);
             _pickerBrush.ColorInterpolationMode = ColorInterpolationMode.SRgbLinearInterpolation;
 
-            List<Color> colorsList = ColorExtensions.GenerateHsvSpectrum();
-            double stopIncrement = (double)1 / colorsList.Count;
+            var colorsList = ColorExtensions.GenerateHsvSpectrum();
+            var stopIncrement = (double)1 / colorsList.Count;
 
             int i;
             for (i = 0; i < colorsList.Count; i++)
-            {
                 _pickerBrush.GradientStops.Add(new GradientStop(colorsList[i], i * stopIncrement));
-            }
 
             _pickerBrush.GradientStops[i - 1].Offset = 1.0;
             _spectrumRectangle.Fill = _pickerBrush;
@@ -149,7 +161,7 @@ namespace ScreenToGif.Controls
         }
     }
 
-    #endregion HsvColor
+    #endregion
 
     #region ColorThumb
 
@@ -181,41 +193,22 @@ namespace ScreenToGif.Controls
         /// </summary>
         public Color ThumbColor
         {
-            get
-            {
-                return (Color)GetValue(ThumbColorProperty);
-            }
-            set
-            {
-
-                SetValue(ThumbColorProperty, value);
-            }
+            get => (Color)GetValue(ThumbColorProperty);
+            set => SetValue(ThumbColorProperty, value);
         }
 
         public double PointerOutlineThickness
         {
-            get
-            {
-                return (double)GetValue(PointerOutlineThicknessProperty);
-            }
-            set
-            {
-                SetValue(PointerOutlineThicknessProperty, value);
-            }
+            get => (double)GetValue(PointerOutlineThicknessProperty);
+            set => SetValue(PointerOutlineThicknessProperty, value);
         }
 
         public Brush PointerOutlineBrush
         {
-            get
-            {
-                return (Brush)GetValue(PointerOutlineBrushProperty);
-            }
-            set
-            {
-                SetValue(PointerOutlineBrushProperty, value);
-            }
+            get => (Brush)GetValue(PointerOutlineBrushProperty);
+            set => SetValue(PointerOutlineBrushProperty, value);
         }
     }
 
-    #endregion ColorThumb
+    #endregion
 }

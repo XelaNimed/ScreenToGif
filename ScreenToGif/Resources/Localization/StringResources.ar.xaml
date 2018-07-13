@@ -70,10 +70,6 @@
     <!--<s:String x:Key="Application.ScreenRecorder.AsyncRecording">Enable asynchronous recording.</s:String>-->
     <!--<s:String x:Key="Application.ScreenRecorder.AsyncRecording.Info">(It helps reduce the interface lag when recording)</s:String>-->
     
-    <s:String x:Key="Application.Shortcuts">اختصارات لوحة المفاتيح</s:String>
-    <s:String x:Key="Application.Shortcuts.StartPause">بدء / إيقاف مؤقت:</s:String>
-    <s:String x:Key="Application.Shortcuts.Stop">توقف:</s:String>
-
     <s:String x:Key="Application.Other">آخر</s:String>
     <!--<s:String x:Key="Application.Other.CheckForUpdates">Check for updates.</s:String>-->
     
@@ -110,6 +106,9 @@
     <s:String x:Key="Interface.Other.ExtendChrome">تمديد شريط العنوان / كروم.</s:String>
     <!--<s:String x:Key="Interface.Other.HideTitleBar">Hide the title bar (thin mode).</s:String>-->
     <!--<s:String x:Key="Interface.Other.TripleClickSelection">Enable triple-click to select the text.</s:String>-->
+  
+    <s:String x:Key="S.Shortcuts.Recorders.StartPause">بدء / إيقاف مؤقت:</s:String>
+    <s:String x:Key="S.Shortcuts.Recorders.Stop">توقف:</s:String>
   
     <s:String x:Key="Language.AppLanguage">اللغة التطبيق</s:String>
     
@@ -379,9 +378,9 @@
     <s:String x:Key="Editor.Clipboard.InvalidCut.Instruction">لا يمكنك قطع جميع الإطارات.</s:String>
     <s:String x:Key="Editor.Clipboard.InvalidCut.Message">تسجيل يحتاج إطار واحد على الأقل.</s:String>
     
-    <s:String x:Key="Editor.Remove.Title">حذف الكل</s:String>
-    <s:String x:Key="Editor.Remove.Instruction">هل تريد إزالة كل الإطارات؟</s:String>
-    <s:String x:Key="Editor.Remove.Message">أنت تحاول إزالة كل الإطارات.\n\rلا يمكنك التراجع عن هذه العملية.</s:String>
+    <s:String x:Key="Editor.DiscardProject.Title">حذف الكل</s:String>
+    <s:String x:Key="Editor.DiscardProject.Instruction">هل تريد إزالة كل الإطارات؟</s:String>
+    <s:String x:Key="Editor.DiscardProject.Message">أنت تحاول إزالة كل الإطارات.\n\rلا يمكنك التراجع عن هذه العملية.</s:String>
 
     <s:String x:Key="Editor.Resize.Warning">عليك اختيار قيمة مختلفة لتطبيق إجراءات تغيير الحجم إلى.</s:String>
     <s:String x:Key="Editor.Crop.Warning">اختيار اقتصاص يجب أن تكون أصغر من حجم الإطار الحالي.</s:String>
@@ -630,7 +629,7 @@
     <!--<s:String x:Key="S.SaveAs.File.Increase">Increase the file number</s:String>-->
     <!--<s:String x:Key="S.SaveAs.File.Decrease">Decrease the file number</s:String>-->
     <!--<s:String x:Key="S.SaveAs.File.Exists">A file with the same name already exists.</s:String>-->
-    <!--<s:String x:Key="S.SaveAs.File.Overwrite">Overwrite (if already exists).</s:String>-->
+    <!--<s:String x:Key="S.SaveAs.SaveOptions.Overwrite">Overwrite (if already exists).</s:String>-->
     <!--<s:String x:Key="S.SaveAs.File.Clipboard">Save to the clipboard.</s:String>-->
     <!--<s:String x:Key="S.SaveAs.Warning.Folder">You need to select an output folder.</s:String>-->
     <!--<s:String x:Key="S.SaveAs.Warning.Folder.NotExists">The output folder does not exist.</s:String>-->

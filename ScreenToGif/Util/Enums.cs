@@ -27,6 +27,11 @@
         Gif,
 
         /// <summary>
+        /// Animated Portable Network Graphics.
+        /// </summary>
+        Apng,
+
+        /// <summary>
         /// Any type of video.
         /// </summary>
         Video,
@@ -39,7 +44,12 @@
         /// <summary>
         /// Project file, .stg or .zip.
         /// </summary>
-        Project
+        Project,
+
+        /// <summary>
+        /// PSD file.
+        /// </summary>
+        Photoshop,
     }
 
     /// <summary>
@@ -104,6 +114,11 @@
         LoadRecent = 11,
 
         /// <summary>
+        /// Remove Duplicates Panel.
+        /// </summary>
+        RemoveDuplicates = 12,
+
+        /// <summary>
         /// Crop Panel.
         /// </summary>
         Crop = -1,
@@ -152,6 +167,11 @@
         /// Key Strokes Panel.
         /// </summary>
         KeyStrokes = -10,
+
+        /// <summary>
+        /// Obfuscate Panel.
+        /// </summary>
+        Obfuscate = -11,
     }
 
     /// <summary>
@@ -214,7 +234,12 @@
         /// <summary>
         /// Single shot mode.
         /// </summary>
-        Snapping = 4
+        Snapping = 4,
+
+        /// <summary>
+        /// The recording is being discarded.
+        /// </summary>
+        Discarding = 5
     }
 
     /// <summary>
@@ -223,9 +248,9 @@
     public enum Status
     {
         /// <summary>
-        /// Normal encoding status.
+        /// Processing encoding/uploading status.
         /// </summary>
-        Encoding,
+        Processing,
 
         /// <summary>
         /// The Encoding was canceled. So aparently "cancelled" (with two L's) is also a valid grammar. Huh, that's strange.
@@ -256,7 +281,7 @@
         FlipHorizontal,
         FlipVertical,
         RotateRight90,
-        RotateLeft90,
+        RotateLeft90
     }
 
     /// <summary>
@@ -296,7 +321,9 @@
     {
         Legacy,
         ScreenToGif,
-        PaintNet
+        PaintNet,
+        FFmpeg,
+        Gifski
     }
 
     /// <summary>
@@ -307,6 +334,7 @@
         Ordered,
         NeuQuant,
         Octree,
+        Grayscale,
     }
 
     /// <summary>
@@ -362,6 +390,7 @@
     {
         Video,
         Gif,
+        Apng,
         Image,
         Project
     }
@@ -373,5 +402,117 @@
     {
         Inside,
         Outside
+    }
+
+    /// <summary>
+    /// Specifies the type of copy operation.
+    /// </summary>
+    public enum CopyType
+    {
+        File,
+        FolderPath,
+        FilePath,
+        Link
+    }
+    
+    /// <summary>
+    /// Specifies the status of the image card control.
+    /// </summary>
+    public enum ExtrasStatus
+    {
+        NotAvailable,
+        Available,
+        Processing,
+        Ready,
+        Error
+    }
+
+    /// <summary>
+    /// Specifies the type of frame removal.
+    /// </summary>
+    public enum DuplicatesRemovalType
+    {
+        First = 0,
+        Last = 1
+    }
+
+    /// <summary>
+    /// Specifies the type of frame delay adjustment.
+    /// </summary>
+    public enum DuplicatesDelayType
+    {
+        DontAdjust = 0,
+        Average = 1,
+        Sum = 2
+    }
+
+    /// <summary>
+    /// Event flags for mouse-related events.
+    /// </summary>
+    public enum MouseEventType
+    {
+        MouseMove,
+        IconRightMouseDown,
+        IconLeftMouseDown,
+        IconRightMouseUp,
+        IconLeftMouseUp,
+        IconMiddleMouseDown,
+        IconMiddleMouseUp,
+        IconDoubleClick
+    }
+
+
+    /// <summary>
+    /// Dialog Icons.
+    /// </summary>
+    public enum Icons
+    {
+        /// <summary>
+        /// Information. Blue.
+        /// </summary>
+        Info,
+
+        /// <summary>
+        /// Warning, yellow.
+        /// </summary>
+        Warning,
+
+        /// <summary>
+        /// Error, red.
+        /// </summary>
+        Error,
+
+        /// <summary>
+        /// Success, green.
+        /// </summary>
+        Success,
+
+        /// <summary>
+        /// A question mark, blue.
+        /// </summary>
+        Question,
+    }
+
+    /// <summary>
+    /// The proxy method, used for uploading files.
+    /// </summary>
+    public enum ProxyType
+    {
+        Disabled = 0,
+        Manual = 1,
+        System = 2
+    }
+
+    /// <summary>
+    /// The upload service.
+    /// </summary>
+    public enum UploadService
+    {
+        None = 0,
+        ImgurAnonymous = 1,
+        Imgur = 2,
+        GyfcatAnonymous = 3,
+        Gyfcat = 4,
+        Yandex = 5,
     }
 }

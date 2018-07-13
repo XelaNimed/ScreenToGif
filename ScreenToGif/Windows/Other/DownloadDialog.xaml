@@ -26,14 +26,16 @@
         </Grid>
 
         <n:StatusBand Grid.Row="1" x:Name="StatusBand"/>
-        
+
         <Grid Grid.Row="2">
             <FlowDocumentScrollViewer VerticalScrollBarVisibility="Auto">
                 <FlowDocument FontFamily="Segoe UI" TextAlignment="Left">
                     <Paragraph TextAlignment="Center" FontWeight="Light">
                         <Run Text="{DynamicResource Update.NewRelease}" FontSize="30"/>
-                        <Run Name="VersionRun" Text="Version 2.3" FontSize="20"/>
-                        <Run Name="SizeRun" Text="340 KB" FontSize="14" Foreground="Gray"/>
+                        <Run Name="VersionRun" Text="Version 2.8.1" FontSize="20"/>
+                        <Run Name="SizeRun" Text="610 KB" FontSize="14" Foreground="Gray"/>
+                        <LineBreak/>
+                        <Run Name="TypeRun" Text="Portable" FontSize="15" Foreground="Gray"/>
                     </Paragraph>
 
                     <Paragraph FontSize="20" FontWeight="Regular" Margin="0">What's new?</Paragraph>
@@ -53,9 +55,9 @@
             </Grid.ColumnDefinitions>
 
             <ProgressBar x:Name="DownloadProgressBar" Grid.Column="0" Height="4" Margin="5,0" IsIndeterminate="True" Visibility="Hidden"/>
-            
+
             <n:ImageButton Grid.Column="1" x:Name="DownloadButton" Text="{DynamicResource Download}" Content="{StaticResource Vector.Ok}" ContentHeight="20" Padding="4,0" MinWidth="90" Margin="5" Click="DownloadButton_Click"/>
-            <n:ImageButton Grid.Column="2" x:Name="CancelButton" Text="{DynamicResource Cancel}" Content="{StaticResource Vector.Cancel}" ContentHeight="20" Padding="4,0" MinWidth="90" Margin="5" Click="CancelButton_Click"/>
+            <n:ImageButton Grid.Column="2" x:Name="CancelButton" Text="{DynamicResource Cancel}" Content="{StaticResource Vector.Cancel}" ContentHeight="20" Padding="4,0" MinWidth="90" Margin="5" Click="CancelButton_Click" IsCancel="True"/>
         </Grid>
     </Grid>
 </Window>

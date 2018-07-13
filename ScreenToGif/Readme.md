@@ -1,24 +1,19 @@
-﻿#ScreenToGif  
+﻿# ScreenToGif  
 
 This is the current project of ScreenToGif.  
 
-VS 2017 and .Net 4.6.1 required.  
+_VS 2017 and .Net 4.6.1 or newer required._
 
 
-Version 2.8:
+## What's new? (Version 2.13.3)
 
-• New recorder UX. It allows you to select the region of your recording such as other programs like Snipping Tool (region, window, fullscreen).  
-• Encoding with FFmpeg now will respect the variable framerate of your recording.  
-• The app will remember the output folder and filename for each export type.  
-• Other minor visual adjustments.  
+• Updated the Dutch translation. 
 
-Fixed:
+### Fixed:
 
-♦ Openning the Crop panel would cause a crash (if the new frame size was smaller).  
-♦ Getting new frames (by a new recording or by loading something else) while the Crop panel was open could throw an exception.  
-♦ Ocasionally, the playback buttons (play/pause, next, etc) would stay disabled (when it shouldn't).  
-♦ The video importer was causing a memory leak.
+♦ The Imgur upload was not working. 
 
-Known Bugs:
+### Known Bugs:
 
-♠ The Insert window does not respect the image DPI.
+♠ Cinemagraph feature does not work correctly when applying to a project with a 
+different dpi than the screen.  

@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
-using ScreenToGif.FileWriters;
 
 namespace ScreenToGif.Util.Model
 {
@@ -30,6 +29,17 @@ namespace ScreenToGif.Util.Model
         [DataMember(Order = 2)]
         public List<FrameInfo> Frames { get; set; } = new List<FrameInfo>();
 
+        ///// <summary>
+        ///// The dpi of the project.
+        ///// </summary>
+        //[DataMember(Order = 3)]
+        //public double Dpi { get; set; } = 96;
+
+        ////// <summary>
+        ///// The size of the images.
+        ///// </summary>
+        //[DataMember(Order = 4)]
+        //public Size Size { get; set; } = new Size(0, 0);
 
         /// <summary>
         /// The full path of project based on current settings.
@@ -55,7 +65,7 @@ namespace ScreenToGif.Util.Model
         /// The full path to the redo folder.
         /// </summary>
         public string RedoStackPath => Path.Combine(ActionStackPath, "Redo");
-        
+
         /// <summary>
         /// Check if there's any frame on this project.
         /// </summary>
@@ -82,13 +92,13 @@ namespace ScreenToGif.Util.Model
 
             if (!Directory.Exists(ActionStackPath))
                 Directory.CreateDirectory(ActionStackPath);
-            
+
             if (!Directory.Exists(UndoStackPath))
                 Directory.CreateDirectory(UndoStackPath);
-            
+
             if (!Directory.Exists(RedoStackPath))
                 Directory.CreateDirectory(RedoStackPath);
-            
+
             #endregion
 
             return this;
@@ -101,7 +111,7 @@ namespace ScreenToGif.Util.Model
                 using (var ms = new MemoryStream())
                 {
                     var ser = new DataContractJsonSerializer(typeof(ProjectInfo));
-                    
+
                     ser.WriteObject(ms, this);
 
                     File.WriteAllText(ProjectPath, Encoding.UTF8.GetString(ms.ToArray()));
@@ -113,9 +123,27 @@ namespace ScreenToGif.Util.Model
             }
         }
 
+        public void Clear()
+        {
+            Frames?.Clear();
+        }
+
         public string FilenameOf(int index)
         {
             return Any && LatestIndex >= index ? Path.Combine(FullPath, Frames[index].Name) : "";
+        }
+
+        /// <summary>
+        /// Gets the index that is in range of the current list of frames.
+        /// </summary>
+        /// <param name="index">The index to compare.</param>
+        /// <returns>A valid index.</returns>
+        public int ValidIndex(int index)
+        {
+            if (index == -1)
+                index = 0;
+
+            return LatestIndex >= index ? index : LatestIndex;
         }
 
         #endregion

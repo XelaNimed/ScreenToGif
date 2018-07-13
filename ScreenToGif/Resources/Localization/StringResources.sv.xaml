@@ -41,6 +41,7 @@
     <!--Options Page-->
     <s:String x:Key="Title.Options">Screen To Gif - Alternativ</s:String>
     <s:String x:Key="Application">Tillämpningar</s:String>
+    <s:String x:Key="S.Shortcuts">Snabbkommando</s:String>
     <s:String x:Key="Interface">Gränssnitt</s:String>
     <s:String x:Key="Image">Bild</s:String>
     <s:String x:Key="Language">Språk</s:String>
@@ -70,10 +71,6 @@
     <s:String x:Key="Application.ScreenRecorder.AsyncRecording">Aktivera osynkroniserad inspelning</s:String>
     <s:String x:Key="Application.ScreenRecorder.AsyncRecording.Info">(Hjälper mot interface störningar vid inspelning)</s:String>
     
-    <s:String x:Key="Application.Shortcuts">Snabbkommando</s:String>
-    <s:String x:Key="Application.Shortcuts.StartPause">Start/Paus:</s:String>
-    <s:String x:Key="Application.Shortcuts.Stop">Avbryt:</s:String>
-
     <s:String x:Key="Application.Other">Andra</s:String>
     <s:String x:Key="Application.Other.CheckForUpdates">Kolla efter uppdateringar.</s:String>
     
@@ -111,6 +108,9 @@
     <s:String x:Key="Interface.Other.HideTitleBar">Göm fönstrets titel (enkel läge).</s:String>
     <s:String x:Key="Interface.Other.TripleClickSelection">Aktivera trippel klickför att välja text.</s:String>
   
+    <s:String x:Key="S.Shortcuts.Recorders.StartPause">Start/Paus:</s:String>
+    <s:String x:Key="S.Shortcuts.Recorders.Stop">Avbryt:</s:String>
+
     <s:String x:Key="Language.AppLanguage">Applikations språk</s:String>
     
     <s:String x:Key="TempFiles.FilesAndFolders">Temporära filer och mappar</s:String>
@@ -381,9 +381,9 @@
     <s:String x:Key="Editor.Clipboard.InvalidCut.Instruction">Du kan inte beskära alla ramar.</s:String>
     <s:String x:Key="Editor.Clipboard.InvalidCut.Message">Inspelningen behöver åtminstonde en bildruta.</s:String>
     
-    <s:String x:Key="Editor.Remove.Title">Ta bort alla</s:String>
-    <s:String x:Key="Editor.Remove.Instruction">Vill du ta bort alla bildrutor?</s:String>
-    <s:String x:Key="Editor.Remove.Message">Du försöker att ta bort alla bildrutor.\n\rDu kan inte ångra den här åtgärden.</s:String>
+    <s:String x:Key="Editor.DiscardProject.Title">Ta bort alla</s:String>
+    <s:String x:Key="Editor.DiscardProject.Instruction">Vill du ta bort alla bildrutor?</s:String>
+    <s:String x:Key="Editor.DiscardProject.Message">Du försöker att ta bort alla bildrutor.\n\rDu kan inte ångra den här åtgärden.</s:String>
 
     <s:String x:Key="Editor.Resize.Warning">Du måste välja ett annat värde för att tillämpa storleksändringen.</s:String>
     <s:String x:Key="Editor.Crop.Warning">Urvals utklipp måste vara mindre än den aktuella ramstorleken.</s:String>
@@ -632,7 +632,7 @@
     <s:String x:Key="S.SaveAs.File.Increase">Öka filnumret</s:String>
     <s:String x:Key="S.SaveAs.File.Decrease">Minska filnumret</s:String>
     <s:String x:Key="S.SaveAs.File.Exists">En fil med samma namn finns redan.</s:String>
-    <s:String x:Key="S.SaveAs.File.Overwrite">Skriv över (om den redan existerar).</s:String>
+    <s:String x:Key="S.SaveAs.SaveOptions.Overwrite">Skriv över (om den redan existerar).</s:String>
     <s:String x:Key="S.SaveAs.File.Clipboard">Spara till Urklipp.</s:String>
     <s:String x:Key="S.SaveAs.Warning.Folder">Du måste välja en destinations mapp.</s:String>
     <s:String x:Key="S.SaveAs.Warning.Folder.NotExists">Destinations filen finns inte.</s:String>

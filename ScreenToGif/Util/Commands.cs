@@ -145,6 +145,16 @@ namespace ScreenToGif.Util
 
         #endregion
 
+        #region SizeToContent
+
+        /// <summary>
+        /// SizeToContent Command, Alt + 1
+        /// </summary>
+        public static RoutedUICommand SizeToContent { get; set; } = new RoutedUICommand("Size to Content", "SizeToContent", typeof(Commands),
+            new InputGestureCollection { new KeyGesture(Key.D1, ModifierKeys.Alt, "Alt + 1") });
+
+        #endregion
+
         #region FitImage
 
         /// <summary>
@@ -252,6 +262,12 @@ namespace ScreenToGif.Util
         /// </summary>
         public static RoutedUICommand DeleteNext { get; set; } = new RoutedUICommand("Delete All Next Frames", "DeleteNext", typeof(Commands),
             new InputGestureCollection { new KeyGesture(Key.Right, ModifierKeys.Alt, "Alt + Right") });
+
+        /// <summary>
+        /// Remove Duplicates Command, Alt + Delete
+        /// </summary>
+        public static RoutedUICommand RemoveDuplicates { get; set; } = new RoutedUICommand("Remove Duplicates", "RemoveDuplicates", typeof(Commands),
+            new InputGestureCollection { new KeyGesture(Key.Delete, ModifierKeys.Alt, "Alt + Delete") });
 
         /// <summary>
         /// Reduce Command, Ctrl + Shift + Delete
@@ -472,6 +488,16 @@ namespace ScreenToGif.Util
 
         #endregion
 
+        #region Obfuscate
+
+        /// <summary>
+        /// Obfuscate Command, Ctrl + H
+        /// </summary>
+        public static RoutedUICommand Obfuscate { get; set; } = new RoutedUICommand("Obfuscate", "Obfuscate", typeof(Commands),
+            new InputGestureCollection { new KeyGesture(Key.H, ModifierKeys.Control, "Ctrl + H") });
+
+        #endregion
+
         #region Cinemagraph
 
         /// <summary>
@@ -581,10 +607,22 @@ namespace ScreenToGif.Util
             new InputGestureCollection { new KeyGesture(Key.D, ModifierKeys.Control | ModifierKeys.Alt, "Ctrl + Alt + D") });
 
         /// <summary>
+        /// Open Local Settings Command, Ctrl + Shift + A
+        /// </summary>
+        public static RoutedUICommand OpenLocalSettings { get; set; } = new RoutedUICommand("Open Local Settings", "OpenLocalSettings", typeof(Commands),
+            new InputGestureCollection { new KeyGesture(Key.A, ModifierKeys.Control | ModifierKeys.Shift, "Ctrl + Shift + A") });
+
+        /// <summary>
         /// Remove AppData Settings Command, Ctrl + Alt + F
         /// </summary>
         public static RoutedUICommand RemoveAppDataSettings { get; set; } = new RoutedUICommand("Remove AppData Settings", "RemoveAppDataSettings", typeof(Commands),
             new InputGestureCollection { new KeyGesture(Key.F, ModifierKeys.Control | ModifierKeys.Alt, "Ctrl + Alt + F") });
+
+        /// <summary>
+        /// Open AppData Settings Command, Ctrl + Alt + A
+        /// </summary>
+        public static RoutedUICommand OpenAppDataSettings { get; set; } = new RoutedUICommand("Open AppData Settings", "OpenAppDataSettings", typeof(Commands),
+            new InputGestureCollection { new KeyGesture(Key.A, ModifierKeys.Control | ModifierKeys.Alt, "Ctrl + Alt + A") });
 
         /// <summary>
         /// Clear all completed encodings, Ctrl + D
@@ -649,11 +687,6 @@ namespace ScreenToGif.Util
 
         #endregion
 
-
-        /// <summary>
-        /// Enable/Disable FullScreen mode Command, No Input
-        /// </summary>
-        public static RoutedUICommand EnableFullScreen { get; set; } = new RoutedUICommand("Enable FullScreen Recording", "EnableFullScreen", typeof(Commands));
 
         /// <summary>
         /// Enable/Disable Snap to Window Command, "Ctrl + Alt + Z"

@@ -8,9 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
-using ScreenToGif.FileWriters;
 using ScreenToGif.Util.Model;
-using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
 namespace ScreenToGif.Util
 {
@@ -99,7 +97,7 @@ namespace ScreenToGif.Util
             {
                 LogWriter.Log(ex, "Resource Loading", resourceName);
             }
-            
+
             return result;
         }
 
@@ -121,7 +119,7 @@ namespace ScreenToGif.Util
 
         private static Size MeasureString(this TextBlock textBlock)
         {
-            var formattedText = new FormattedText(textBlock.Text, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, 
+            var formattedText = new FormattedText(textBlock.Text, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
                 new Typeface(textBlock.FontFamily, textBlock.FontStyle, textBlock.FontWeight, textBlock.FontStretch), textBlock.FontSize, Brushes.Black);
 
             return new Size(formattedText.Width, formattedText.Height);
@@ -139,6 +137,27 @@ namespace ScreenToGif.Util
         {
             return new Rect(Math.Round(rect.Left * scale, MidpointRounding.AwayFromZero), Math.Round(rect.Top * scale, MidpointRounding.AwayFromZero),
                 Math.Round(rect.Width * scale, MidpointRounding.AwayFromZero), Math.Round(rect.Height * scale, MidpointRounding.AwayFromZero));
+        }
+
+        internal static Rect Limit(this Rect rect, double width, double height)
+        {
+            var newX = rect.X < 0 ? 0 : rect.X;
+            var newY = rect.Y < 0 ? 0 : rect.Y;
+
+            var newWidth = newX + rect.Width > width ? width - newX : rect.Width;
+            var newHeight = newY + rect.Height > height ? height - newY : rect.Height;
+            
+            return new Rect(newX, newY, newWidth, newHeight);
+        }
+
+        internal static Size Scale(this Size size, double scale)
+        {
+            return new Size(Math.Round(size.Width * scale, MidpointRounding.AwayFromZero), Math.Round(size.Height * scale, MidpointRounding.AwayFromZero));
+        }
+
+        internal static Point Scale(this Point point, double scale)
+        {
+            return new Point(Math.Round(point.X * scale, MidpointRounding.AwayFromZero), Math.Round(point.Y * scale, MidpointRounding.AwayFromZero));
         }
 
         public static double RoundUpValue(double value, int decimalpoint = 0)
@@ -167,6 +186,16 @@ namespace ScreenToGif.Util
         }
 
         /// <summary>
+        /// Gets the DPI of the system.
+        /// </summary>
+        /// <returns>The DPI of the system.</returns>
+        public static double DpiOfSystem()
+        {
+            using (var source = new HwndSource(new HwndSourceParameters()))
+                return 96d * (source.CompositionTarget?.TransformToDevice.M11 ?? 1D);
+        }
+
+        /// <summary>
         /// Gets the scale of the current window.
         /// </summary>
         /// <param name="window">The Window.</param>
@@ -182,48 +211,96 @@ namespace ScreenToGif.Util
         }
 
         /// <summary>
-        /// Generates a file name.
+        /// Gets the scale of the system.
         /// </summary>
-        /// <param name="fileType">The desired output file type.</param>
-        /// <param name="frameCount">The number of frames of the recording.</param>
-        /// <returns>A valid file name.</returns>
-        [Obsolete("I should use a ExportPanel like the SaveAs")]
-        public static string FileName(string fileType, int frameCount = 0)
+        /// <returns>The scale of the system.</returns>
+        public static double ScaleOfSystem()
         {
-            #region Ask where to save.
+            using (var source = new HwndSource(new HwndSourceParameters()))
+                return source.CompositionTarget?.TransformToDevice.M11 ?? 1D;
+        }
 
-            var ofd = new SaveFileDialog {AddExtension = true};
+        public static string Remove(this string text, params string[] keys)
+        {
+            if (text == null)
+                throw new ArgumentNullException(nameof(text), "The text should not be null.");
 
-            switch (fileType)
-            {
-                case "stg":
-                case "zip":
-                    ofd.Filter = "ScreenToGif Project (*.stg)|*.stg|Zip Archive (*.zip)|*.zip";
-                    ofd.Title = "Select the File Location"; //TODO: Localize
-                    ofd.FileName = string.Format(frameCount > 1
-                                ? "Project - {0} Frames [H {1:hh-MM-ss}]"
-                                : "Project - {0} Frame [H {1:hh-mm-ss}]", frameCount, DateTime.Now);
-                    break;
-            }
+            foreach (var key in keys)
+                text = text.Replace(key, string.Empty);
 
-            ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            return text;
+        }
 
-            var result = ofd.ShowDialog();
+        public static bool Contains(this Int32Rect first, Int32Rect second)
+        {
+            if (first.IsEmpty || second.IsEmpty || (first.X > second.X || first.Y > second.Y) || first.X + first.Width < second.X + second.Width)
+                return false;
 
-            if (!result.HasValue || !result.Value)
-                return null;
+            return first.Y + first.Height >= second.Y + second.Height;
+        }
 
-            return ofd.FileName;
+        public static List<DetectedRegion> AdjustPosition(this List<DetectedRegion> list, double x, double y)
+        {
+            foreach (var region in list)
+                region.Bounds = new Rect(new Point(region.Bounds.X - x, region.Bounds.Y - y), region.Bounds.Size);
+
+            return list;
+        }
+
+        public static string TextResource(this FrameworkElement visual, string key, string defaultValue = "")
+        {
+            return visual.TryFindResource(key) as string ?? defaultValue;
+        }
+
+        public static Brush RandomBrush()
+        {
+            var rnd = new Random();
+
+            var brushesType = typeof(Brushes);
+
+            var properties = brushesType.GetProperties();
+
+            var random = rnd.Next(properties.Length);
+
+            return (Brush)properties[random].GetValue(null, null);
+        }
+
+        /// <summary>
+        /// Gets the third value based on the other 2 parameters.
+        /// Total       =   100 %
+        /// Variable    =   percentage
+        /// </summary>
+        /// <returns>The value that was not filled.</returns>
+        public static double CrossMultiplication(double? total, double? variable, double? percentage)
+        {
+            #region Validation
+
+            //Only one of the parameters can bee null.
+            var ammount = (total.HasValue ? 0 : 1) + (variable.HasValue ? 0 : 1) + (percentage.HasValue ? 0 : 1);
+
+            if (ammount != 1)
+                throw new ArgumentException("Only one of the parameters can bee null");
 
             #endregion
+
+            if (!total.HasValue && percentage.HasValue && variable.HasValue)
+                return (percentage.Value * 100d) / variable.Value;
+
+            if (!percentage.HasValue && total.HasValue && variable.HasValue)
+                return (variable.Value * 100d) / total.Value;
+
+            if (!variable.HasValue && total.HasValue && percentage.HasValue)
+                return (percentage.Value * total.Value) / 100d;
+
+            return 0;
         }
 
         #region List
 
         public static List<FrameInfo> CopyList(this List<FrameInfo> target)
         {
-            return new List<FrameInfo>(target.Select(item => new FrameInfo(item.Path, item.Delay, 
-                new List<SimpleKeyGesture>(item.KeyList.Select(y => new SimpleKeyGesture(y.Key, y.Modifiers))))));
+            return new List<FrameInfo>(target.Select(item => new FrameInfo(item.Path, item.Delay,
+                new List<SimpleKeyGesture>(item.KeyList.Select(y => new SimpleKeyGesture(y.Key, y.Modifiers, y.IsUppercase))), item.Index)));
         }
 
         /// <summary>
@@ -258,8 +335,9 @@ namespace ScreenToGif.Util
         /// Copies the List and saves the images in another folder.
         /// </summary>
         /// <param name="target">The List to copy</param>
+        /// <param name="usePadding">If true, the name of the frames will be adjusted in order to circunvent file ordering issue. For example: 010.png instead of 10.png if there's more than 999 frames.</param>
         /// <returns>The copied list.</returns>
-        public static List<FrameInfo> CopyToEncode(this List<FrameInfo> target)
+        public static List<FrameInfo> CopyToEncode(this List<FrameInfo> target, bool usePadding = false)
         {
             #region Folder
 
@@ -279,10 +357,12 @@ namespace ScreenToGif.Util
 
             try
             {
+                var pad = usePadding ? (target.Count - 1).ToString().Length : 0;
+
                 foreach (var frameInfo in target)
                 {
                     //Changes the path of the image. Writes as an ordered list of files, replacing the old filenames.
-                    var filename = Path.Combine(encodeFolder, newList.Count + ".png");
+                    var filename = Path.Combine(encodeFolder, newList.Count.ToString().PadLeft(pad, '0') + ".png");
                     //var filename = Path.Combine(encodeFolder, Path.GetFileName(frameInfo.Path) + ".png");
 
                     //Copy the image to the folder.
@@ -298,7 +378,7 @@ namespace ScreenToGif.Util
                 LogWriter.Log(ex, "");
                 throw;
             }
-            
+
             return newList;
         }
 
@@ -320,7 +400,7 @@ namespace ScreenToGif.Util
 
                 File.Copy(frame.Path, newPath);
 
-                var newFrame = new FrameInfo(newPath, frame.Delay);
+                var newFrame = new FrameInfo(newPath, frame.Delay, frame.KeyList);
 
                 list.Add(newFrame);
             }
@@ -372,26 +452,31 @@ namespace ScreenToGif.Util
         /// <param name="routedEvent">The routed event for which to remove the event handlers.</param>
         public static void RemoveRoutedEventHandlers(UIElement element, RoutedEvent routedEvent)
         {
-            // Get the EventHandlersStore instance which holds event handlers for the specified element.
-            // The EventHandlersStore class is declared as internal.
-            var eventHandlersStoreProperty = typeof(UIElement).GetProperty(
-                "EventHandlersStore", BindingFlags.Instance | BindingFlags.NonPublic);
-            object eventHandlersStore = eventHandlersStoreProperty.GetValue(element, null);
+            try
+            {
+                //Get the EventHandlersStore instance which holds event handlers for the specified element.
+                //The EventHandlersStore class is declared as internal.
+                var eventHandlersStoreProperty = typeof(UIElement).GetProperty("EventHandlersStore", BindingFlags.Instance | BindingFlags.NonPublic);
 
-            // If no event handlers are subscribed, eventHandlersStore will be null.
-            if (eventHandlersStore == null)
-                return;
+                var eventHandlersStore = eventHandlersStoreProperty?.GetValue(element, null);
 
-            // Invoke the GetRoutedEventHandlers method on the EventHandlersStore instance 
-            // for getting an array of the subscribed event handlers.
-            var getRoutedEventHandlers = eventHandlersStore.GetType().GetMethod(
-                "GetRoutedEventHandlers", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            var routedEventHandlers = (RoutedEventHandlerInfo[])getRoutedEventHandlers.Invoke(
-                eventHandlersStore, new object[] { routedEvent });
+                //If no event handlers are subscribed, eventHandlersStore will be null.
+                if (eventHandlersStore == null)
+                    return;
 
-            // Iteratively remove all routed event handlers from the element.
-            foreach (var routedEventHandler in routedEventHandlers)
-                element.RemoveHandler(routedEvent, routedEventHandler.Handler);
+                //Invoke the GetRoutedEventHandlers method on the EventHandlersStore instance for getting an array of the subscribed event handlers.
+                var getRoutedEventHandlers = eventHandlersStore.GetType().GetMethod("GetRoutedEventHandlers", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+                var routedEventHandlers = (RoutedEventHandlerInfo[])getRoutedEventHandlers.Invoke(eventHandlersStore, new object[] { routedEvent });
+
+                //Iteratively remove all routed event handlers from the element.
+                foreach (var routedEventHandler in routedEventHandlers)
+                    element.RemoveHandler(routedEvent, routedEventHandler.Handler);
+            }
+            catch (Exception ex)
+            {
+                LogWriter.Log(ex, "Removing event handlers");
+            }
         }
 
         #endregion
@@ -401,13 +486,12 @@ namespace ScreenToGif.Util
         public static bool IsFfmpegPresent()
         {
             //File location already choosen or detected.
-            if (!string.IsNullOrWhiteSpace(UserSettings.All.FfmpegLocation) &&
-                File.Exists(UserSettings.All.FfmpegLocation))
+            if (!string.IsNullOrWhiteSpace(UserSettings.All.FfmpegLocation) && File.Exists(UserSettings.All.FfmpegLocation))
                 return true;
 
             #region Check Environment Variables
 
-            var variable = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine) + ";" + 
+            var variable = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine) + ";" +
                 Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.User);
 
             foreach (var path in variable.Split(';'))
@@ -423,6 +507,38 @@ namespace ScreenToGif.Util
                 }
 
                 UserSettings.All.FfmpegLocation = Path.Combine(path, "ffmpeg.exe");
+                return true;
+            }
+
+            #endregion
+
+            return false;
+        }
+
+        public static bool IsGifskiPresent()
+        {
+            //File location already choosen or detected.
+            if (!string.IsNullOrWhiteSpace(UserSettings.All.GifskiLocation) && File.Exists(UserSettings.All.GifskiLocation))
+                return true;
+
+            #region Check Environment Variables
+
+            var variable = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine) + ";" +
+                Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.User);
+
+            foreach (var path in variable.Split(';'))
+            {
+                try
+                {
+                    if (!File.Exists(Path.Combine(path, "gifski.dll"))) continue;
+                }
+                catch (Exception ex)
+                {
+                    //LogWriter.Log(ex, "Checking the path variables", path);
+                    continue;
+                }
+
+                UserSettings.All.GifskiLocation = Path.Combine(path, "gifski.dll");
                 return true;
             }
 

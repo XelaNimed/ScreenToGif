@@ -53,7 +53,8 @@
     </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\ScreenToGif.XML</DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
@@ -65,13 +66,21 @@
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
@@ -92,6 +101,16 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Cloud\ICloud.cs" />
+    <Compile Include="Cloud\Imgur\ImgurAlbum.cs" />
+    <Compile Include="Cloud\Imgur\ImgurGetAlbumsResponse.cs" />
+    <Compile Include="Cloud\Imgur\ImgurUploadImageResponse.cs" />
+    <Compile Include="Cloud\Imgur\OAuth2Token.cs" />
+    <Compile Include="Cloud\UploadedFile.cs" />
+    <Compile Include="Cloud\UploadingException.cs" />
+    <Compile Include="Cloud\YandexDisk\Error.cs" />
+    <Compile Include="Cloud\YandexDisk\Link.cs" />
+    <Compile Include="Cloud\YandexDisk\YandexDisk.cs" />
     <Compile Include="Controls\AdornerControl.cs" />
     <Compile Include="Controls\AttachmentListBoxItem.cs" />
     <Compile Include="Controls\AwareTabItem.cs" />
@@ -101,12 +120,19 @@
     <Compile Include="Controls\DoubleBox.cs" />
     <Compile Include="Controls\DragScrollGrid.cs" />
     <Compile Include="Controls\DropDownButton.cs" />
+    <Compile Include="Controls\DynamicGrid.cs" />
     <Compile Include="Controls\EncoderListViewItem.cs" />
     <Compile Include="Controls\ExtendedCheckBox.cs" />
     <Compile Include="Controls\ExtendedTextBox.cs" />
     <Compile Include="Controls\FrameListBoxItem.cs" />
     <Compile Include="Controls\FrameworkElementAdorner.cs" />
     <Compile Include="Controls\HeaderedTooltip.cs" />
+    <Compile Include="Controls\ExtendedUniformGrid.cs" />
+    <Compile Include="Controls\ImageCard.cs" />
+    <Compile Include="Controls\LabelSeparator.cs" />
+    <Compile Include="Controls\NotifyIcon.cs" />
+    <Compile Include="Controls\RecorderWindow.cs" />
+    <Compile Include="Controls\SplitButton.cs" />
     <Compile Include="Controls\KeyBox.cs" />
     <Compile Include="Controls\HexadecimalBox.cs" />
     <Compile Include="Controls\HideableTabControl.cs" />
@@ -132,52 +158,70 @@
     <Compile Include="Controls\ResizingAdorner.cs" />
     <Compile Include="Controls\SpectrumSlider.cs" />
     <Compile Include="Controls\StatusBand.cs" />
+    <Compile Include="Controls\StatusList.cs" />
     <Compile Include="Controls\TextPath.cs" />
-    <Compile Include="Controls\TrayIcon.cs" />
     <Compile Include="Controls\WebcamControl.xaml.cs">
       <DependentUpon>WebcamControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\ZoomBox.cs" />
-    <Compile Include="ImageUtil\LegacyEncoder\AnimatedGifEncoder.cs" />
-    <Compile Include="ImageUtil\LegacyEncoder\GifEncoder.cs" />
-    <Compile Include="ImageUtil\LegacyEncoder\LZWEncoder.cs" />
-    <Compile Include="ImageUtil\LegacyEncoder\NeuQuant.cs" />
-    <Compile Include="ImageUtil\LegacyEncoder\PixelUtilOld.cs" />
-    <Compile Include="ImageUtil\Decoder\GifApplicationExtension.cs" />
-    <Compile Include="ImageUtil\Decoder\GifBlock.cs" />
-    <Compile Include="ImageUtil\Decoder\GifBlockKind.cs" />
-    <Compile Include="ImageUtil\Decoder\GifColor.cs" />
-    <Compile Include="ImageUtil\Decoder\GifCommentExtension.cs" />
-    <Compile Include="ImageUtil\Decoder\GifDecoderException.cs" />
-    <Compile Include="ImageUtil\Decoder\GifExtension.cs" />
-    <Compile Include="ImageUtil\Decoder\GifFile.cs" />
-    <Compile Include="ImageUtil\Decoder\GifFrame.cs" />
-    <Compile Include="ImageUtil\Decoder\GifGraphicControlExtension.cs" />
-    <Compile Include="ImageUtil\Decoder\GifHeader.cs" />
-    <Compile Include="ImageUtil\Decoder\GifHelpers.cs" />
-    <Compile Include="ImageUtil\Decoder\GifImageData.cs" />
-    <Compile Include="ImageUtil\Decoder\GifImageDescriptor.cs" />
-    <Compile Include="ImageUtil\Decoder\GifLogicalScreenDescriptor.cs" />
-    <Compile Include="ImageUtil\Decoder\GifPlainTextExtension.cs" />
-    <Compile Include="ImageUtil\Decoder\GifTrailer.cs" />
+    <Compile Include="ImageUtil\Apng\Apng.cs" />
+    <Compile Include="ImageUtil\Apng\Chunks\ActlChunk.cs" />
+    <Compile Include="ImageUtil\Apng\Chunks\Chunk.cs" />
+    <Compile Include="ImageUtil\Apng\Chunks\FctlChunk.cs" />
+    <Compile Include="ImageUtil\Apng\Chunks\FdatChunk.cs" />
+    <Compile Include="ImageUtil\Apng\Chunks\IdatChunk.cs" />
+    <Compile Include="ImageUtil\Apng\Chunks\IendChunk.cs" />
+    <Compile Include="ImageUtil\Apng\Chunks\IhdrChunk.cs" />
+    <Compile Include="ImageUtil\Gif\Encoder\GifFile.cs" />
+    <Compile Include="ImageUtil\Gif\LegacyEncoder\AnimatedGifEncoder.cs" />
+    <Compile Include="ImageUtil\Gif\LegacyEncoder\GifEncoder.cs" />
+    <Compile Include="ImageUtil\Gif\LegacyEncoder\LZWEncoder.cs" />
+    <Compile Include="ImageUtil\Gif\LegacyEncoder\NeuQuant.cs" />
+    <Compile Include="ImageUtil\Gif\LegacyEncoder\PixelUtilOld.cs" />
+    <Compile Include="ImageUtil\Gif\Decoder\GifApplicationExtension.cs" />
+    <Compile Include="ImageUtil\Gif\Decoder\GifBlock.cs" />
+    <Compile Include="ImageUtil\Gif\Decoder\GifBlockKind.cs" />
+    <Compile Include="ImageUtil\Gif\Decoder\GifColor.cs" />
+    <Compile Include="ImageUtil\Gif\Decoder\GifCommentExtension.cs" />
+    <Compile Include="ImageUtil\Gif\Decoder\GifDecoderException.cs" />
+    <Compile Include="ImageUtil\Gif\Decoder\GifExtension.cs" />
+    <Compile Include="ImageUtil\Gif\Decoder\GifFile.cs" />
+    <Compile Include="ImageUtil\Gif\Decoder\GifFrame.cs" />
+    <Compile Include="ImageUtil\Gif\Decoder\GifGraphicControlExtension.cs" />
+    <Compile Include="ImageUtil\Gif\Decoder\GifHeader.cs" />
+    <Compile Include="ImageUtil\Gif\Decoder\GifHelpers.cs" />
+    <Compile Include="ImageUtil\Gif\Decoder\GifImageData.cs" />
+    <Compile Include="ImageUtil\Gif\Decoder\GifImageDescriptor.cs" />
+    <Compile Include="ImageUtil\Gif\Decoder\GifLogicalScreenDescriptor.cs" />
+    <Compile Include="ImageUtil\Gif\Decoder\GifPlainTextExtension.cs" />
+    <Compile Include="ImageUtil\Gif\Decoder\GifTrailer.cs" />
     <None Include="app.manifest">
       <SubType>Designer</SubType>
     </None>
-    <Compile Include="ImageUtil\Encoder\BitEncoder.cs" />
-    <Compile Include="ImageUtil\Encoder\GifFile.cs" />
-    <Compile Include="ImageUtil\Encoder\LZWEncoder.cs" />
-    <Compile Include="ImageUtil\Encoder\PixelUtil.cs" />
-    <Compile Include="ImageUtil\Quantization\Quantizer.cs" />
+    <Compile Include="ImageUtil\Gif\Encoder\BitEncoder.cs" />
+    <Compile Include="ImageUtil\Gif\Encoder\LZWEncoder.cs" />
+    <Compile Include="ImageUtil\Gif\Encoder\PixelUtil.cs" />
+    <Compile Include="ImageUtil\Gif\Encoder\Quantization\GrayscaleQuantizer.cs" />
+    <Compile Include="ImageUtil\Gif\Encoder\Quantization\OctreeQuantizer.cs" />
+    <Compile Include="ImageUtil\Gif\Encoder\Quantization\PaletteQuantizer.cs" />
+    <Compile Include="ImageUtil\Gif\Encoder\Quantization\Quantizer.cs" />
+    <Compile Include="Cloud\CloudFactory.cs" />
+    <Compile Include="Cloud\Gfycat.cs" />
+    <Compile Include="Cloud\Imgur\Imgur.cs" />
     <Compile Include="Util\ActionStack.cs" />
     <Compile Include="Util\ActivityHook\CustomKeyEventArgs.cs" />
     <Compile Include="Util\ActivityHook\CustomKeyPressEventArgs.cs" />
     <Compile Include="Util\ActivityHook\CustomMouseEventArgs.cs" />
     <Compile Include="Util\ActivityHook\UserActivityHook.cs" />
     <Compile Include="Util\Argument.cs" />
+    <Compile Include="Util\BitHelper.cs" />
     <Compile Include="Util\Converters\BoolAndToVisibility.cs" />
+    <Compile Include="Util\Converters\BoolOrAndToVisibility.cs" />
+    <Compile Include="Util\Converters\EnumToInt.cs" />
     <Compile Include="Util\Converters\FormatConverter.cs" />
     <Compile Include="Util\Converters\IntToVisibility.cs" />
     <Compile Include="Util\Converters\ShortcutKeys.cs" />
+    <Compile Include="Util\CrcHelper.cs" />
     <Compile Include="Util\DataGridHelper.cs" />
     <Compile Include="Util\DynamicResourceBinding.cs" />
     <Compile Include="Util\FeedbackHelper.cs" />
@@ -229,8 +273,13 @@
     <Compile Include="Util\Converters\TagToSelection.cs" />
     <Compile Include="Util\Converters\UriToBitmap.cs" />
     <Compile Include="Util\Enums.cs" />
-    <Compile Include="FileWriters\Extras.cs" />
+    <Compile Include="Util\Extras.cs" />
     <Compile Include="Util\FastRandom.cs" />
+    <Compile Include="Util\HotKey.cs" />
+    <Compile Include="Util\HotKeyCollection.cs" />
+    <Compile Include="Util\WebHelper.cs" />
+    <Compile Include="Util\Model\ApplicationModel.cs" />
+    <Compile Include="Util\Model\ApplicationViewModel.cs" />
     <Compile Include="Util\Model\FrameInfo.cs" />
     <Compile Include="Util\Glass.cs" />
     <Compile Include="Util\Global.cs" />
@@ -241,17 +290,16 @@
     <Compile Include="Util\MathHelper.cs" />
     <Compile Include="Util\Model\ProjectInfo.cs" />
     <Compile Include="Util\Native.cs" />
-    <Compile Include="FileWriters\AviWriter.cs" />
-    <Compile Include="FileWriters\LogWriter.cs" />
+    <Compile Include="ImageUtil\Video\AviWriter.cs" />
+    <Compile Include="Util\LogWriter.cs" />
     <Compile Include="Util\Other.cs" />
-    <Compile Include="Util\Parameters\GifParameters.cs" />
-    <Compile Include="Util\Parameters\Parameters.cs" />
-    <Compile Include="Util\Parameters\VideoParameters.cs" />
+    <Compile Include="Util\Parameters.cs" />
     <Compile Include="Util\ScreenHelper.cs" />
     <Compile Include="Util\ScrollSynchronizer.cs" />
     <Compile Include="Util\Secret.cs" />
     <Compile Include="Util\Serializer.cs" />
     <Compile Include="Util\SimpleKeyGesture.cs" />
+    <Compile Include="Util\StreamHelpers.cs" />
     <Compile Include="Util\UiElementsExtension.cs" />
     <Compile Include="Util\UserSettings.cs" />
     <Compile Include="Util\VisualHelper.cs" />
@@ -272,6 +320,12 @@
     </Compile>
     <Compile Include="Windows\Editor.xaml.cs">
       <DependentUpon>Editor.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\Other\ExceptionDialog.xaml.cs">
+      <DependentUpon>ExceptionDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\Other\PickAlbumDialog.xaml.cs">
+      <DependentUpon>PickAlbumDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\Other\ErrorDialog.xaml.cs">
       <DependentUpon>ErrorDialog.xaml</DependentUpon>
@@ -305,6 +359,9 @@
     </Compile>
     <Compile Include="Windows\Other\SelectFolderDialog.xaml.cs">
       <DependentUpon>SelectFolderDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\Other\TextDialog.xaml.cs">
+      <DependentUpon>TextDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\Other\VideoSource.xaml.cs">
       <DependentUpon>VideoSource.xaml</DependentUpon>
@@ -354,6 +411,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Resources\Localization\StringResources.es.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Resources\Localization\StringResources.it.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -363,6 +424,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Resources\Localization\StringResources.ko.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Resources\Localization\StringResources.nl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -402,11 +467,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Resources\Localization\StringResources.zh-CN.xaml">
+    <Page Include="Resources\Localization\StringResources.zh.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Resources\Localization\StringResources.pt-BR.xaml">
+    <Page Include="Resources\Localization\StringResources.pt.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -418,7 +483,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Resources\Localization\StringResources.zh-TW.xaml">
+    <Page Include="Resources\Localization\StringResources.zh-Hant.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -459,6 +524,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Themes\Common.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Themes\RangeSlider.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -474,6 +543,14 @@
     <Page Include="Windows\Editor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\Other\ExceptionDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\Other\PickAlbumDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Windows\Other\ErrorDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -518,6 +595,10 @@
     <Page Include="Windows\Other\SelectFolderDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\Other\TextDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\Other\VideoSource.xaml">
       <SubType>Designer</SubType>
@@ -580,7 +661,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\Style.css" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="ImageUtil\Psd\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
@@ -598,4 +681,8 @@
     </ItemGroup>
     <Copy SourceFiles="@(Win32Binaries)" DestinationFolder="$(TargetUWP)" />
   </Target>
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
 </Project>

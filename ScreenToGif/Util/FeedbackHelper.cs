@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
-using ScreenToGif.FileWriters;
 
 namespace ScreenToGif.Util
 {
@@ -30,7 +29,7 @@ namespace ScreenToGif.Util
             {
                 using (var smtp = new SmtpClient
                 {
-                    Timeout = 5 * 60 * 1000, //Minutes, seconds, miliseconds
+                    Timeout = 6 * 60 * 1000, //Minutes, seconds, miliseconds
                     Port = Secret.Port,
                     Host = Secret.Host,
                     EnableSsl = true,

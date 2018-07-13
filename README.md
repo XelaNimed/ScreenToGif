@@ -13,22 +13,17 @@
 <a href="https://chocolatey.org/packages/screentogif" target="_blank">
  <img alt="All Chocolatey releases" src="https://img.shields.io/chocolatey/dt/screentogif.svg" />
 </a>
-<a href="https://ci.appveyor.com/project/NickeManarin/screentogif" target="_blank">
- <img alt="Build status" src="https://ci.appveyor.com/api/projects/status/y43difu89c6juyli?svg=true" />
-</a>
 </p>
 <h1 align="center">ScreenToGif 🎬 <a href="http://www.screentogif.com/" target="_blank">screentogif.com</a></h1>
 
 <p>This tool allows you to record a selected area of your <strong>screen</strong>, live feed from your <strong>webcam</strong> or live drawings from a <strong>sketchboard</strong>. Afterwards, you can edit and save the animation as a gif or video. <a href="https://github.com/NickeManarin/ScreenToGif/releases">Download it here</a></p>
-
 
 <p align="center">
 <g-emoji ios-version="6.0" fallback-src="https://assets-cdn.github.com/images/icons/emoji/unicode/26a0.png" alias="warning">⚠️</g-emoji> Attention, it requires <a href="http://www.microsoft.com/en-us/download/details.aspx?id=49982">.Net Framework 4.6.1</a> (or above). 
  <g-emoji ios-version="6.0" fallback-src="https://assets-cdn.github.com/images/icons/emoji/unicode/26a0.png" alias="warning">⚠️</g-emoji>
 </p>
 
-<h2>Details</h2>
-<p>
+<p align="center">
 <a href="https://github.com/NickeManarin/ScreenToGif/releases/latest" target="_blank">
  <img alt="Latest GitHub release" src="https://img.shields.io/github/release/nickemanarin/screentogif.svg" />
 </a>
@@ -46,7 +41,7 @@
 </a>
 </p>
 
-<h3>This is how you can help the project grow</h3>
+<h2>Would you like to help the project?</h2>
 
  * Paypal donation: [![Paypal page](https://img.shields.io/badge/donate-Paypal-fd8200.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=JCY2BGLULSWVJ&lc=US&item_name=ScreenToGif&item_number=screentogif&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted)
  * Patreon subscription: [![Patreon subscription](https://img.shields.io/badge/subscribe-Patreon-orange.svg)](https://www.patreon.com/nicke)
@@ -54,9 +49,7 @@
  * Feedback (reporting bugs, ideas, etc) [![Author's Twitter](https://img.shields.io/badge/Twitter-%40NickeManarin-blue.svg)](https://twitter.com/NickeManarin)
  * Create a review. :)
 
-**Thank you so much.**
-
-<h3>Screenshots (and other images)</h3>
+<h2>Screenshots (and other images)</h2>
 
 <p align="center">
  <img align="center" alt="start up" src="https://github.com/NickeManarin/ScreenToGif-Website/blob/master/screenshots/Recorder.png" />
@@ -85,12 +78,16 @@
 <h3>Reviews</h3>
 <table>
 	<tr>
+		<th>Image</th>
 		<th>Website</th>
-		<th>Link</th>
 	<tr>
 	<tr>
-		<td>Softpedia</td>
-		<td><a href="http://www.softpedia.com/get/Multimedia/Graphic/Graphic-Others/Screen-to-Gif.shtml">ScreenToGif review</a></td>
+		<td><img align="center" alt="Chip pick" src="https://github.com/NickeManarin/ScreenToGif-Website/blob/master/img/Chip.png?raw=true"/></td>
+		<td><a href="http://www.chip.de/downloads/Screen-To-Gif_65993193.html">Chip</a></td>
+	</tr>
+	<tr>
+		<td></td>
+		<td><a href="http://www.softpedia.com/get/Multimedia/Graphic/Graphic-Others/Screen-to-Gif.shtml">Softpedia</a></td>
 	</tr>
 </table>
 
@@ -101,7 +98,7 @@
 		<th>Repo</th>
 	<tr>
 	<tr>
-		<td>EMLVIRUS</td>
-		<td><a href="https://github.com/EMLVIRUS/Amazing-Windows-Apps">Amazing-Windows-Apps</a></td>
+		<td><a href="http://amazingapps.org">Amazing Apps</a></td>
+		<td><a href="https://github.com/AmazingApps/Amazing-Windows-Apps">Amazing-Windows-Apps</a></td>
 	</tr>
 </table>

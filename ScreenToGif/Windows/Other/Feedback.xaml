@@ -26,10 +26,12 @@
             <Label Grid.Column="1" x:Name="TypeLabel" Content="{DynamicResource S.Feedback.Header}" Margin="10" VerticalContentAlignment="Center" 
                    FontFamily="Segoe UI Semilight" FontSize="18" Foreground="#FF003399"/>
 
-            <TextBlock Grid.Column="2" TextAlignment="Center" VerticalAlignment="Center" FontSize="13" Foreground="#FF003399" Margin="0,0,5,0">
-                I can understand English or <LineBreak/>
-                Portuguese (Brazillian and European).
+            <TextBlock Grid.Column="2" FontSize="13" Foreground="#FF003399" TextAlignment="Center" VerticalAlignment="Center" Margin="5">
+                <TextBlock Text="{DynamicResource S.Feedback.LanguageInfo1}"/>
+                <LineBreak></LineBreak>
+                <TextBlock Text="{DynamicResource S.Feedback.LanguageInfo2}"/>
             </TextBlock>
+
         </Grid>
 
         <n:StatusBand Grid.Row="1" x:Name="StatusBand"/>
@@ -129,7 +131,7 @@
                                                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Padding="1" />
 
                                             <n:ImageButton Grid.Column="2" x:Name="RemoveButton" Content="{StaticResource Vector.Close}" VerticalAlignment="Stretch"
-                                                           Style="{StaticResource Style.Button.NoText}" MaxSize="10" Width="12" Visibility="Collapsed" 
+                                                           Style="{StaticResource Style.Button.NoText}" ContentWidth="12" Width="12" Visibility="Collapsed" 
                                                            PreviewMouseLeftButtonUp="RemoveButton_OnMouseLeftButtonDown" Margin="2,0,0,0"/>
                                         </Grid>
                                     </Border>
@@ -161,6 +163,7 @@
                                             <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource Item.SelectedActive.Border}"/>
                                             <Setter Property="Visibility" TargetName="RemoveButton" Value="Visible"/>
                                         </MultiTrigger>
+                                        
                                         <Trigger Property="IsEnabled" Value="False">
                                             <Setter Property="TextElement.Foreground" TargetName="Bd" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
                                         </Trigger>
@@ -188,7 +191,7 @@
                            Click="RemoveAllAttachmentButton_Click"/>
 
             <n:ImageButton Grid.Column="3" x:Name="OkButton" Text="{DynamicResource S.Feedback.Send}" Content="{StaticResource Vector.Ok}" ContentHeight="20" Padding="4,0" Margin="5" Click="SendButton_Click"/>
-            <n:ImageButton Grid.Column="4" x:Name="CancelButton" Text="{DynamicResource Cancel}" Content="{StaticResource Vector.Cancel}" ContentHeight="20" Padding="4,0" Margin="5" Click="CancelButton_Click"/>
+            <n:ImageButton Grid.Column="4" x:Name="CancelButton" Text="{DynamicResource Cancel}" Content="{StaticResource Vector.Cancel}" ContentHeight="20" Padding="4,0" Margin="5" Click="CancelButton_Click" IsCancel="True"/>
         </Grid>
     </Grid>
 </Window>

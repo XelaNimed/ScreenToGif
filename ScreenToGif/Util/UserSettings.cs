@@ -1,16 +1,21 @@
 ﻿using System;
+using System.Collections;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Ink;
 using System.Windows.Input;
-using System.Windows.Markup;
 using System.Windows.Media;
+using System.Xaml;
 using System.Xml;
+using XamlParseException = System.Windows.Markup.XamlParseException;
+using XamlReader = System.Windows.Markup.XamlReader;
+using XamlWriter = System.Windows.Markup.XamlWriter;
 
 namespace ScreenToGif.Util
 {
@@ -21,6 +26,8 @@ namespace ScreenToGif.Util
         private static ResourceDictionary _local;
         private static ResourceDictionary _appData;
         private static readonly ResourceDictionary Default;
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public static UserSettings All { get; } = new UserSettings();
 
@@ -65,6 +72,8 @@ namespace ScreenToGif.Util
             Default = Application.Current.Resources.MergedDictionaries.FirstOrDefault(d => d.Source.OriginalString.EndsWith("/Settings.xaml"));
         }
 
+        #region Methods
+
         public static void Save()
         {
             //Only writes if there's something changed. Should not write the default dictionary.
@@ -74,6 +83,8 @@ namespace ScreenToGif.Util
             //Filename: Local or AppData.
             var filename = _local != null ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.xaml") :
                 Path.Combine(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ScreenToGif"), "Settings.xaml");
+            var backup = _local != null ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.xaml.bak") :
+                Path.Combine(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ScreenToGif"), "Settings.xaml.bak");
 
             #region Create folder
 
@@ -84,36 +95,33 @@ namespace ScreenToGif.Util
 
             #endregion
 
-            var settings = new XmlWriterSettings { Indent = true };
+            //Create backup.
+            if (File.Exists(filename))
+                File.Copy(filename, backup, true);
 
-            using (var writer = XmlWriter.Create(filename, settings))
-                XamlWriter.Save(_local ?? _appData, writer);
+            try
+            {
+                var settings = new XmlWriterSettings
+                {
+                    Indent = true,
+                    CheckCharacters = true,
+                    CloseOutput = true,
+                    ConformanceLevel = ConformanceLevel.Fragment,
+                    Encoding = Encoding.UTF8,
+                };
 
-            #region Old
+                using (var writer = XmlWriter.Create(filename, settings))
+                    XamlWriter.Save(_local ?? _appData, writer);
 
-            //if (Local != null)
-            //{
-            //    foreach (var key in Default.Keys)
-            //    {
-            //        if (Local.Contains(key))
-            //            Local[key] = Application.Current.Resources[key]; //Does not make sense here, I already do this when SetValue.
-            //        else
-            //            Local.Add(key, Application.Current.Resources[key]); //Will load all settings.
-            //    }
-            //}
+                if (File.ReadAllText(filename).All(x => x == '\0'))
+                    File.Copy(backup, filename, true);
 
-            //if (AppData != null)
-            //{
-            //    foreach (var key in Default.Keys)
-            //    {
-            //        if (AppData.Contains(key))
-            //            AppData[key] = Application.Current.Resources[key];
-            //        else
-            //            AppData.Add(key, Application.Current.Resources[key]);
-            //    }
-            //}
-
-            #endregion
+                File.Delete(backup);
+            }
+            catch (Exception e)
+            {
+                LogWriter.Log(e, "Saving settings");
+            }
         }
 
         private static object GetValue([CallerMemberName] string key = "", object defaultValue = null)
@@ -125,7 +133,7 @@ namespace ScreenToGif.Util
                 return Default[key];
 
             if (Application.Current.Resources.Contains(key))
-                return Application.Current.FindResource(key);
+                return Application.Current.Resources[key];
 
             return Default[key] ?? defaultValue;
         }
@@ -136,7 +144,13 @@ namespace ScreenToGif.Util
             if (_local != null)
             {
                 if (_local.Contains(key))
+                {
                     _local[key] = value;
+
+                    //If the value is being set to null, remove it.
+                    if (value == null && (!Default.Contains(key) || Default[key] == null))
+                        _local.Remove(key);
+                }
                 else
                     _local.Add(key, value);
             }
@@ -145,7 +159,13 @@ namespace ScreenToGif.Util
             if (_appData != null)
             {
                 if (_appData.Contains(key))
+                {
                     _appData[key] = value;
+
+                    //If the value is being set to null, remove it.
+                    if (value == null && (!Default.Contains(key) || Default[key] == null))
+                        _appData.Remove(key);
+                }
                 else
                     _appData.Add(key, value);
             }
@@ -159,20 +179,38 @@ namespace ScreenToGif.Util
             All.OnPropertyChanged(key);
         }
 
-        private static ResourceDictionary LoadOrDefault(string path)
+        private static ResourceDictionary LoadOrDefault(string path, int trial = 0, XamlObjectWriterException exception = null)
         {
             ResourceDictionary resource = null;
 
             try
             {
-                using (var fs = new FileStream(path, FileMode.Open))
+                if (!File.Exists(path))
+                    return new ResourceDictionary();
+
+                if (exception != null)
+                {
+                    var content = File.ReadAllLines(path).ToList();
+                    content.RemoveAt(exception.LineNumber - 1);
+
+                    File.WriteAllLines(path, content);
+                }
+
+                using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
                     try
                     {
                         //Read in ResourceDictionary File
                         resource = (ResourceDictionary)XamlReader.Load(fs);
                     }
-                    catch (Exception)
+                    catch (XamlParseException xx)
+                    {
+                        if (xx.InnerException is XamlObjectWriterException inner && trial < 5)
+                            return LoadOrDefault(path, trial + 1, inner);
+
+                        resource = new ResourceDictionary();
+                    }
+                    catch (Exception ex)
                     {
                         //Sets a default value if null.
                         resource = new ResourceDictionary();
@@ -213,17 +251,13 @@ namespace ScreenToGif.Util
 
         public static void RemoveAppDataSettings()
         {
-            var appData = Path.Combine(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ScreenToGif"), "Settings.xaml");
+            var appData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ScreenToGif", "Settings.xaml");
 
             if (File.Exists(appData))
                 File.Delete(appData);
 
             _appData = null; //TODO: Should I remove from the merged dictionaries?
         }
-
-        #region Property Changed
-
-        public event PropertyChangedEventHandler PropertyChanged;
 
         private void OnPropertyChanged(string propertyName = null)
         {
@@ -232,27 +266,59 @@ namespace ScreenToGif.Util
 
         #endregion
 
-        #region Properties
+        #region Startup
 
-        public bool FullScreenMode
+        public double StartupTop
         {
-            get => (bool)GetValue();
+            get => (double)GetValue();
             set => SetValue(value);
         }
 
-        public bool AsyncRecording
+        public double StartupLeft
         {
-            get => (bool)GetValue();
+            get => (double)GetValue();
             set => SetValue(value);
         }
 
-        public bool UsePreStart
+        public double StartupHeight
         {
-            get => (bool)GetValue();
+            get => (double)GetValue();
             set => SetValue(value);
         }
 
-        public int PreStartValue
+        public double StartupWidth
+        {
+            get => (double)GetValue();
+            set => SetValue(value);
+        }
+
+        public WindowState StartupWindowState
+        {
+            get => (WindowState)GetValue();
+            set => SetValue(value);
+        }
+
+        #endregion
+
+        #region Recorder
+
+        public Rect SelectedRegion
+        {
+            get => (Rect)GetValue();
+            set => SetValue(value);
+        }
+
+        public int RecorderModeIndex
+        {
+            get => (int)GetValue();
+            set => SetValue(value);
+        }
+
+        #endregion
+
+        #region Options • Application
+
+        public int StartUp
         {
             get => (int)GetValue();
             set => SetValue(value);
@@ -261,18 +327,6 @@ namespace ScreenToGif.Util
         public bool ShowCursor
         {
             get => (bool)GetValue();
-            set => SetValue(value);
-        }
-
-        public bool SnapshotMode
-        {
-            get => (bool)GetValue();
-            set => SetValue(value);
-        }
-
-        public int StartUp
-        {
-            get => (int)GetValue();
             set => SetValue(value);
         }
 
@@ -288,41 +342,172 @@ namespace ScreenToGif.Util
             set => SetValue(value);
         }
 
-        public string LanguageCode
+        public bool UsePreStart
         {
-            get => (string)GetValue();
+            get => (bool)GetValue();
             set => SetValue(value);
         }
 
-        public int LatestFps
+        public int PreStartValue
         {
             get => (int)GetValue();
             set => SetValue(value);
         }
 
-        public double RecorderLeft
+        public bool SnapshotMode
         {
-            get => (double)GetValue();
+            get => (bool)GetValue();
             set => SetValue(value);
         }
 
-        public double RecorderTop
-        {
-            get => (double)GetValue();
-            set => SetValue(value);
-        }
-
-        public int RecorderWidth
+        public int SnapshotDefaultDelay
         {
             get => (int)GetValue();
             set => SetValue(value);
         }
 
-        public int RecorderHeight
+        public bool FixedFrameRate
         {
-            get => (int)GetValue();
+            get => (bool)GetValue();
             set => SetValue(value);
         }
+
+        public bool AsyncRecording
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool NewRecorder
+        {
+            get => (bool)GetValue(nameof(NewRecorder), true);
+            set => SetValue(value);
+        }
+
+        public bool Magnifier
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool ShowNotificationIcon
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool KeepOpen
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool NotifyFrameDeletion
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool NotifyProjectDiscard
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool NotifyWhileClosingEditor
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool DrawOutlineOutside
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool CheckForUpdates 
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        #endregion
+
+        #region Options • Shortcuts
+
+        public Key RecorderShortcut
+        {
+            get => (Key)GetValue(defaultValue: Key.None);
+            set => SetValue(value);
+        }
+
+        public ModifierKeys RecorderModifiers
+        {
+            get => (ModifierKeys)GetValue(defaultValue: ModifierKeys.None);
+            set => SetValue(value);
+        }
+
+        public Key WebcamRecorderShortcut
+        {
+            get => (Key)GetValue(defaultValue: Key.None);
+            set => SetValue(value);
+        }
+
+        public ModifierKeys WebcamRecorderModifiers
+        {
+            get => (ModifierKeys)GetValue(defaultValue: ModifierKeys.None);
+            set => SetValue(value);
+        }
+
+        public Key BoardRecorderShortcut
+        {
+            get => (Key)GetValue(defaultValue: Key.None);
+            set => SetValue(value);
+        }
+
+        public ModifierKeys BoardRecorderModifiers
+        {
+            get => (ModifierKeys)GetValue(defaultValue: ModifierKeys.None);
+            set => SetValue(value);
+        }
+
+        public Key EditorShortcut
+        {
+            get => (Key)GetValue(defaultValue: Key.None);
+            set => SetValue(value);
+        }
+
+        public ModifierKeys EditorModifiers
+        {
+            get => (ModifierKeys)GetValue(defaultValue: ModifierKeys.None);
+            set => SetValue(value);
+        }
+
+        public Key OptionsShortcut
+        {
+            get => (Key)GetValue(defaultValue: Key.None);
+            set => SetValue(value);
+        }
+
+        public ModifierKeys OptionsModifiers
+        {
+            get => (ModifierKeys)GetValue(defaultValue: ModifierKeys.None);
+            set => SetValue(value);
+        }
+
+        public Key ExitShortcut
+        {
+            get => (Key)GetValue(defaultValue: Key.None);
+            set => SetValue(value);
+        }
+
+        public ModifierKeys ExitModifiers
+        {
+            get => (ModifierKeys)GetValue(defaultValue: ModifierKeys.None);
+            set => SetValue(value);
+        }
+
 
         public Key StartPauseShortcut
         {
@@ -360,9 +545,157 @@ namespace ScreenToGif.Util
             set => SetValue(value);
         }
 
-        public bool CheckForUpdates
+        #endregion
+
+        #region Options • Language
+
+        public string LanguageCode
+        {
+            get => (string)GetValue();
+            set => SetValue(value);
+        }
+
+        #endregion
+
+        #region Options • Cloud
+
+        //Proxy
+        public ProxyType ProxyMode
+        {
+            get => (ProxyType)GetValue(defaultValue:ProxyType.Disabled);
+            set => SetValue(value);
+        }
+
+        public string ProxyHost
+        {
+            get => (string)GetValue();
+            set => SetValue(value);
+        }
+
+        public int ProxyPort
+        {
+            get => (int)GetValue();
+            set => SetValue(value);
+        }
+
+        public string ProxyUsername
+        {
+            get => (string)GetValue();
+            set => SetValue(value);
+        }
+
+        public string ProxyPassword
+        {
+            get => (string)GetValue();
+            set => SetValue(value);
+        }
+
+        //Imgur (Anonymous)
+        public bool ImgurAnonymousUseDirectLinks
         {
             get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool ImgurAnonymousUseGifvLink
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        //Imgur
+        public string ImgurOAuthToken
+        {
+            get => (string)GetValue();
+            set => SetValue(value);
+        }
+
+        public string ImgurAccessToken
+        {
+            get => (string)GetValue();
+            set => SetValue(value);
+        }
+
+        public string ImgurRefreshToken
+        {
+            get => (string)GetValue();
+            set => SetValue(value);
+        }
+
+        public DateTime? ImgurExpireDate
+        {
+            get => (DateTime?)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool ImgurUseDirectLinks
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool ImgurUseGifvLink
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool ImgurUploadToAlbum
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public string ImgurSelectedAlbum
+        {
+            get => (string)GetValue();
+            set => SetValue(value);
+        }
+
+        public ArrayList ImgurAlbumList
+        {
+            get => (ArrayList)GetValue();
+            set => SetValue(value);
+        }
+
+        //Yandex
+        public string YandexDiskOAuthToken
+        {
+            get => (string)GetValue();
+            set => SetValue(value);
+        }
+
+        #endregion
+
+        #region Properties
+
+        public int LatestFps
+        {
+            get => (int)GetValue();
+            set => SetValue(value);
+        }
+
+        public double RecorderLeft
+        {
+            get => (double)GetValue();
+            set => SetValue(value);
+        }
+
+        public double RecorderTop
+        {
+            get => (double)GetValue();
+            set => SetValue(value);
+        }
+
+        public int RecorderWidth
+        {
+            get => (int)GetValue();
+            set => SetValue(value);
+        }
+
+        public int RecorderHeight
+        {
+            get => (int)GetValue();
             set => SetValue(value);
         }
 
@@ -390,23 +723,13 @@ namespace ScreenToGif.Util
             set => SetValue(value);
         }
 
+
         public Rect GridSize
         {
             get => (Rect)GetValue();
             set => SetValue(value);
         }
 
-        public bool FixedFrameRate
-        {
-            get => (bool)GetValue();
-            set => SetValue(value);
-        }
-
-        public int SnapshotDefaultDelay
-        {
-            get => (int)GetValue();
-            set => SetValue(value);
-        }
 
         public double EditorTop
         {
@@ -452,6 +775,8 @@ namespace ScreenToGif.Util
 
         #region Options
 
+
+
         public Color BoardGridBackground
         {
             get => (Color)GetValue();
@@ -494,7 +819,13 @@ namespace ScreenToGif.Util
             set => SetValue(value);
         }
 
-        public bool NewRecorder
+        public bool AutomaticallySizeOnContent
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool AutomaticallyFitImage
         {
             get => (bool)GetValue();
             set => SetValue(value);
@@ -518,7 +849,19 @@ namespace ScreenToGif.Util
             set => SetValue(value);
         }
 
+        public int AutomaticCleanUpDays
+        {
+            get => (int)GetValue();
+            set => SetValue(value);
+        }
+
         public string FfmpegLocation
+        {
+            get => (string)GetValue();
+            set => SetValue(value);
+        }
+
+        public string GifskiLocation
         {
             get => (string)GetValue();
             set => SetValue(value);
@@ -606,6 +949,13 @@ namespace ScreenToGif.Util
 
         #region Save As
 
+        //Type and encoder.
+        public bool IsSaveTypeExpanded
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
         public Export SaveType
         {
             get => (Export)GetValue();
@@ -624,27 +974,70 @@ namespace ScreenToGif.Util
             set => SetValue(value);
         }
 
-        public int AviQuality
+        public bool IsGifOptionsExpanded
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool IsApngOptionsExpanded
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool IsVideoOptionsExpanded
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool IsSaveOptionsExpanded
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+        
+        //Gif.
+        public int Quality
         {
             get => (int)GetValue();
             set => SetValue(value);
         }
 
-        public bool FlipVideo
+        public int GifskiQuality
+        {
+            get => (int)GetValue();
+            set => SetValue(value);
+        }
+
+        public int MaximumColors
+        {
+            get => (int)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool Looped
         {
             get => (bool)GetValue();
             set => SetValue(value);
         }
 
-        public bool ZipImages
+        public bool RepeatForever
         {
             get => (bool)GetValue();
             set => SetValue(value);
         }
 
-        public Color ChromaKey
+        public int RepeatCount
         {
-            get => (Color)GetValue();
+            get => (int)GetValue();
+            set => SetValue(value);
+        }
+
+        public ColorQuantizationType ColorQuantization
+        {
+            get => (ColorQuantizationType)GetValue();
             set => SetValue(value);
         }
 
@@ -660,49 +1053,18 @@ namespace ScreenToGif.Util
             set => SetValue(value);
         }
 
-        public bool Looped
+        public Color ChromaKey
         {
-            get => (bool)GetValue();
+            get => (Color)GetValue();
             set => SetValue(value);
         }
 
-        public int RepeatCount
-        {
-            get => (int)GetValue();
-            set => SetValue(value);
-        }
-
-        public bool RepeatForever
-        {
-            get => (bool)GetValue();
-            set => SetValue(value);
-        }
-
-        public int Quality
-        {
-            get => (int)GetValue();
-            set => SetValue(value);
-        }
-
-        public int MaximumColors
-        {
-            get => (int)GetValue();
-            set => SetValue(value);
-        }
-
-        public int OutputFramerate
-        {
-            get => (int)GetValue();
-            set => SetValue(value);
-        }
-
-        public string ExtraParameters
+        public string ExtraParametersGif
         {
             get => (string)GetValue();
             set => SetValue(value);
         }
 
-        //Gif.
         public string LatestOutputFolder
         {
             get => (string)GetValue();
@@ -721,7 +1083,178 @@ namespace ScreenToGif.Util
             set => SetValue(value);
         }
 
+        //Gif > Save options.
+        public bool PickLocation
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool OverwriteOnSave
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool SaveAsProjectToo
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool UploadFile
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public UploadService LatestUploadService
+        {
+            get => (UploadService)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool SaveToClipboard
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public CopyType LatestCopyType
+        {
+            get => (CopyType)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool ExecuteCustomCommands
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public string CustomCommands
+        {
+            get => (string)GetValue();
+            set => SetValue(value);
+        }
+
+        //Apng.
+        public bool DetectUnchangedApng
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool PaintTransparentApng
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool LoopedApng
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public int RepeatCountApng
+        {
+            get => (int)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool RepeatForeverApng
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public string LatestApngOutputFolder
+        {
+            get => (string)GetValue();
+            set => SetValue(value);
+        }
+
+        public string LatestApngFilename
+        {
+            get => (string)GetValue();
+            set => SetValue(value);
+        }
+
+        public string LatestApngExtension
+        {
+            get => (string)GetValue();
+            set => SetValue(value);
+        }
+
+        //Apng > Save options.
+        public bool PickLocationApng
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool OverwriteOnSaveApng
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool SaveAsProjectTooApng
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool SaveToClipboardApng
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public CopyType LatestCopyTypeApng
+        {
+            get => (CopyType)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool ExecuteCustomCommandsApng
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public string CustomCommandsApng
+        {
+            get => (string)GetValue();
+            set => SetValue(value);
+        }
+
         //Video.
+        public int AviQuality
+        {
+            get => (int)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool FlipVideo
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public int OutputFramerate
+        {
+            get => (int)GetValue();
+            set => SetValue(value);
+        }
+
+        public string ExtraParameters
+        {
+            get => (string)GetValue();
+            set => SetValue(value);
+        }
+
         public string LatestVideoOutputFolder
         {
             get => (string)GetValue();
@@ -735,6 +1268,49 @@ namespace ScreenToGif.Util
         }
 
         public string LatestVideoExtension
+        {
+            get => (string)GetValue();
+            set => SetValue(value);
+        }
+
+        //Video > Save options.
+        public bool PickLocationVideo
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool OverwriteOnSaveVideo
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool SaveAsProjectTooVideo
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool SaveToClipboardVideo
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public CopyType LatestCopyTypeVideo
+        {
+            get => (CopyType)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool ExecuteCustomCommandsVideo
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public string CustomCommandsVideo
         {
             get => (string)GetValue();
             set => SetValue(value);
@@ -759,7 +1335,32 @@ namespace ScreenToGif.Util
             set => SetValue(value);
         }
 
-        //Image.
+        //Project > Save options.
+        public bool OverwriteOnSaveProject
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool SaveToClipboardProject
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public CopyType LatestCopyTypeProject
+        {
+            get => (CopyType)GetValue();
+            set => SetValue(value);
+        }
+
+        //Images.
+        public bool ZipImages
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
         public string LatestImageOutputFolder
         {
             get => (string)GetValue();
@@ -778,15 +1379,29 @@ namespace ScreenToGif.Util
             set => SetValue(value);
         }
 
-        public bool OverwriteOnSave
+        //Images > Save options.
+        public bool OverwriteOnSaveImages
         {
             get => (bool)GetValue();
             set => SetValue(value);
         }
 
-        public bool SaveToClipboard
+        //Photoshop.
+        public string LatestPhotoshopOutputFolder
         {
-            get => (bool)GetValue();
+            get => (string)GetValue();
+            set => SetValue(value);
+        }
+
+        public string LatestPhotoshopFilename
+        {
+            get => (string)GetValue();
+            set => SetValue(value);
+        }
+
+        public string LatestPhotoshopExtension
+        {
+            get => (string)GetValue();
             set => SetValue(value);
         }
 
@@ -996,6 +1611,30 @@ namespace ScreenToGif.Util
 
         #region Key Strokes
 
+        public bool IsKeyStrokesKeysExpanded
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool KeyStrokesIgnoreNonModifiers
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool KeyStrokesEarlier
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        public double KeyStrokesEarlierBy
+        {
+            get => (double)GetValue();
+            set => SetValue(value);
+        }
+
         public string KeyStrokesSeparator
         {
             get => (string)GetValue();
@@ -1011,6 +1650,12 @@ namespace ScreenToGif.Util
         public double KeyStrokesDelay
         {
             get => (double)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool IsKeyStrokesFontExpanded
+        {
+            get => (bool)GetValue();
             set => SetValue(value);
         }
 
@@ -1044,6 +1689,12 @@ namespace ScreenToGif.Util
             set => SetValue(value);
         }
 
+        public bool IsKeyStrokesOutlineExpanded
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
         public double KeyStrokesOutlineThickness
         {
             get => (double)GetValue();
@@ -1062,6 +1713,12 @@ namespace ScreenToGif.Util
             set => SetValue(value);
         }
 
+        public bool IsKeyStrokesLayoutExpanded
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
         public VerticalAlignment KeyStrokesVerticalAligment
         {
             get => (VerticalAlignment)GetValue();
@@ -1075,6 +1732,12 @@ namespace ScreenToGif.Util
         }
 
         public double KeyStrokesMargin
+        {
+            get => (double)GetValue();
+            set => SetValue(value);
+        }
+
+        public double KeyStrokesPadding
         {
             get => (double)GetValue();
             set => SetValue(value);
@@ -1150,6 +1813,22 @@ namespace ScreenToGif.Util
 
         #endregion
 
+        #region Obfuscate
+
+        public int PixelSize
+        {
+            get => (int)GetValue();
+            set => SetValue(value);
+        }
+
+        public bool UseMedian
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        #endregion
+
         #region Free Drawing
 
         public int FreeDrawingPenWidth
@@ -1208,6 +1887,8 @@ namespace ScreenToGif.Util
 
         #endregion
 
+        #region Reduce 
+
         public int ReduceFactor
         {
             get => (int)GetValue();
@@ -1219,6 +1900,30 @@ namespace ScreenToGif.Util
             get => (int)GetValue();
             set => SetValue(value);
         }
+
+        #endregion
+
+        #region Remove Duplicates
+
+        public double DuplicatesSimilarity
+        {
+            get => (double)GetValue();
+            set => SetValue(value);
+        }
+
+        public DuplicatesRemovalType DuplicatesRemoval
+        {
+            get => (DuplicatesRemovalType)GetValue();
+            set => SetValue(value);
+        }
+
+        public DuplicatesDelayType DuplicatesDelay
+        {
+            get => (DuplicatesDelayType)GetValue();
+            set => SetValue(value);
+        }
+
+        #endregion
 
         #region Delay
 
@@ -1439,6 +2144,32 @@ namespace ScreenToGif.Util
 
                 return result;
             }
+        }
+
+        #endregion
+
+
+        #region Obsolete
+
+        [Obsolete]
+        public bool FullScreenMode
+        {
+            get => (bool)GetValue();
+            set => SetValue(value);
+        }
+
+        [Obsolete]
+        public string ExtraParametersGifski
+        {
+            get => (string)GetValue();
+            set => SetValue(value);
+        }
+
+        [Obsolete]
+        public int LatestUploadIndex
+        {
+            get => (int)GetValue();
+            set => SetValue(value);
         }
 
         #endregion
